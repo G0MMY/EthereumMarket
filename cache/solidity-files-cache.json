@@ -39,8 +39,8 @@
       ]
     },
     "/home/maxim/Documents/ethmarket/contracts/users.sol": {
-      "lastModificationDate": 1641330677207,
-      "contentHash": "9a1ee488fa64a7b620a6beb3d776b360",
+      "lastModificationDate": 1641770451088,
+      "contentHash": "0ca1b5647ca29b29e8aa2d8269d91246",
       "sourceName": "contracts/users.sol",
       "solcConfig": {
         "version": "0.8.4",

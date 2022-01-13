@@ -1,15 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef, useContext } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import Header from "./Header";
-import { ethers } from 'ethers';
+import { Contract, ethers } from 'ethers';
 import Web3Modal from "web3modal";
-import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
-import { marketContractAddress } from './config';
 import { Box, TextField, Button } from '@mui/material';
-import MetaMaskOnboarding from '@metamask/onboarding';
 import SmallPost from './SmallPost';
 import { Tabs, Tab } from '@mui/material';
-import Highlights from "./Highlights";
+import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
+import { marketContractAddress } from './config';
 
 interface Post{
     id: number,
@@ -27,55 +25,39 @@ interface Post{
 export default function Market() {
     const [posts, setPosts] = useState<JSX.Element[]>([]);
     const [rawPosts, setRawPosts] = useState<Post[]>([]);
-    const [loggedUser, setLoggedUser] = useState(false);
-    const [username, setUsername] = useState("");
-    const [usernameError, setUsernameError] = useState(false);
-    const marketContract = useRef<ethers.Contract>();
-    const [metamaskConnection, setMetamaskConnection] = useState(false);
     const [category, setCategory] = useState(0);
+    const navigate = useNavigate();
+    const [contract, setContract] = useState<ethers.Contract>();
 
     const initializeContracts = async() => {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-        marketContract.current = new ethers.Contract(marketContractAddress, MarketContract.abi, signer);
-        checkUser();
+        setContract(new ethers.Contract(marketContractAddress, MarketContract.abi, signer));
     }
 
-    const checkUser = async() => {
-        if (marketContract.current != undefined){
-            const user = await marketContract.current.isUser();
-            setLoggedUser(user);
-            if (user){
-                loadPosts();
-            }
-        } else {
-            console.log('contract not initialized');
-        }
-    }
+    // const loadPosts = async () => {
+    //     if (marketContract.current != undefined){
+    //         let postsArray = await marketContract.current.getPosts();
 
-    const loadPosts = async () => {
-        if (marketContract.current != undefined){
-            let postsArray = await marketContract.current.getPosts();
-
-            postsArray = await Promise.all(postsArray.map(async (i: Post) => {
-                let post = {
-                    id: i.id.toString(),
-                    name: i.name.toString(),
-                    description: i.description.toString(),
-                    category: i.category.toString(),
-                    imageUrl: i.imageUrl.toString(),
-                    owner: i.owner,
-                    startDate: i.startDate.toString(),
-                    endDate: i.endDate.toString(),
-                    price: i.price.toString(),
-                    sold: i.sold
-                }
-                return post;
-            }))
-            setRawPosts(postsArray);
-            buildPosts(postsArray);
-        }
-    }   
+    //         postsArray = await Promise.all(postsArray.map(async (i: Post) => {
+    //             let post = {
+    //                 id: i.id.toString(),
+    //                 name: i.name.toString(),
+    //                 description: i.description.toString(),
+    //                 category: i.category.toString(),
+    //                 imageUrl: i.imageUrl.toString(),
+    //                 owner: i.owner,
+    //                 startDate: i.startDate.toString(),
+    //                 endDate: i.endDate.toString(),
+    //                 price: i.price.toString(),
+    //                 sold: i.sold
+    //             }
+    //             return post;
+    //         }))
+    //         setRawPosts(postsArray);
+    //         buildPosts(postsArray);
+    //     }
+    // }   
 
     const buildPosts = (postsArray: Post[]) => {
         if (postsArray.length > 0){
@@ -87,84 +69,20 @@ export default function Market() {
         } else {
             setPosts([
                 <div>
-                    No product found with this name.
+                    No products found 
                 </div>
             ]);
         }
     }
 
-    const click = async() =>{
-        if (marketContract.current != undefined){
-            await marketContract.current.createPost("test", "desc test", "image", 1641359145, 100);
-        }
-        loadPosts();
-    }
-
-    const createUserClick = async() => {
-        if (username === ""){
-            setUsernameError(true);
-        }
-        else if (marketContract.current != undefined){
-            marketContract.current.createUser(username);
-            setLoggedUser(true);
-        } else {
-            console.log('contract not initialized')
-        }
-    }
-
-    // const checkChangeAccount = async() => {
-    //     try {
-    //         const { ethereum } = window;
-    //         if (await ethereum.request({method: 'eth_requestAccounts'}) !== userAddress){
-    //             await initializeContracts();
-    //         }
-    //     } catch (e) {
-    //         console.log(e);
+    // const click = async() =>{
+    //     if (marketContract.current != undefined){
+    //         await marketContract.current.createPost("test", "desc test", "image", 1641359145, 100);
     //     }
+    //     loadPosts();
     // }
 
-    const handleUsername = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-        if (e.currentTarget.value.match("^[A-Za-z0-9]+$")){
-            setUsername(e.currentTarget.value);
-            setUsernameError(false);
-        } else {
-            setUsernameError(true);
-            setUsername(e.currentTarget.value);
-        }
-    }
-
-    const connectMetaMask = async() => {
-        try {
-            await window.ethereum.request({method: 'eth_requestAccounts'});
-            await checkMetamaskConnection();
-        } catch (e) {
-            console.log(e);
-        }
-    }
-
-    const checkMetamaskConnection = async() => {
-        if (isMetamaskInstalled()){
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const accounts = await provider.listAccounts();
-            if (accounts.length > 0) {
-                setMetamaskConnection(true);
-                initializeContracts();
-            } else {
-                setMetamaskConnection(false);
-            }
-        }
-    }
-
-    const isMetamaskInstalled = () => {
-        const { ethereum } = window;
-
-        return Boolean(ethereum && ethereum.isMetaMask);
-    }
-
-    const installMetamask = () => {
-        const onboarding = new MetaMaskOnboarding();
-        onboarding.startOnboarding();
-    }
+    // const createUserClick = async() => {
 
     const handleCategoryChange = (e: React.SyntheticEvent, category: number) => {
         setCategory(category);
@@ -240,14 +158,11 @@ export default function Market() {
         buildPosts(result);
     }
 
-    useEffect(()=>{
-        checkMetamaskConnection();
-    }, [])
-
     return (
         <>
             <Header tab={1} />
-            {metamaskConnection? 
+            Market
+            {/* {metamaskConnection? 
                 <div>
                     <div className="centeringDiv">
                         <Tabs value={category} onChange={handleCategoryChange} indicatorColor="secondary" textColor="secondary">
@@ -295,11 +210,11 @@ export default function Market() {
                     </div>
                 }
                 </div>
-            }
+            } */}
         </>
     )
 }
 
-//npx hardhat run scripts/deploy.js --network localhost
+//npx hardhat run scripts/deployDev.js --network localhost
 
 
