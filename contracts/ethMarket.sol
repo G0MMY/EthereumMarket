@@ -129,12 +129,35 @@ contract EthMarket is Users {
         return bids[postId];
     }
 
-    function bid(uint256 postId, uint256 amount) public {
-        require(Users.getBalance(msg.sender) >= amount, "You don't have enough funds");
-        require(msg.sender != posts[postId].owner, "You can't bid on your post");
+    function getUserBids() public view returns(Bid[] memory) {
+        require(Users.isUser(), "You are not a user");
 
+        uint256 nbrUserBids = Users.users[msg.sender].bids.length;
+        Bid[] memory result = new Bid[](nbrUserBids);
+        for (uint i=0;i<nbrUserBids;i++){
+            uint256 postId = Users.users[msg.sender].bids[i].postId;
+            uint256 index = 0;
+            for (uint j=0;j<bids[postId].length;j++){
+                if (Users.users[msg.sender].bids[i].id == bids[postId][j].id){
+                    index = j;
+                }
+            }
+            result[i] = bids[postId][index];
+        }
+        return result;
+    }
+
+    function bid(uint256 postId, uint256 amount) public {
+        require(msg.sender != posts[postId].owner, "You can't bid on your post");
+   
         uint256 len = bids[postId].length;
         if (len > 0){
+            if (bids[postId][len - 1].from == msg.sender){
+                require(bids[postId][len - 1].amount + Users.getBalance(msg.sender) >= bids[postId][len - 1].amount, "overflow");
+            } 
+            else {
+                require(Users.getBalance(msg.sender) >= amount, "You don't have enough funds");
+            }
             require(bids[postId][len -1].amount < amount, "You have to bid higher");
             Users.users[bids[postId][len -1].from].balance += bids[postId][len -1].amount;
         }
@@ -142,6 +165,7 @@ contract EthMarket is Users {
         nbrBids += 1;
         bids[postId].push(Bid(nbrBids, postId, msg.sender, amount, block.timestamp));
         Users.users[msg.sender].balance -= amount;
+        Users.linkBid(nbrBids, postId);
 
         emit CreateBid(msg.sender, nbrBids, postId, amount);
     }

@@ -13,31 +13,11 @@ describe("Users", function () {
     await users.connect(address1).createUser("magalie")
     await users.connect(address2).createUser("marc")
 
-    let usersArray = await users.getUsers();
-    usersArray = await Promise.all(usersArray.map(async i => {
-      let user = {
-        name: i.name.toString(),
-        balance: i.balance.toString(),
-        posts: i.posts,
-        active: i.active,
-      }
-      return user
-    }))
-
-    assert.equal(usersArray[0].name, "maxim")
-    assert.equal(usersArray[0].balance, "0")
-    assert.equal(usersArray[0].posts.length, 0)
-    assert.equal(usersArray[0].active, true)
-
-    assert.equal(usersArray[1].name, "magalie")
-    assert.equal(usersArray[1].balance, "0")
-    assert.equal(usersArray[1].posts.length, 0)
-    assert.equal(usersArray[1].active, true)
-
-    assert.equal(usersArray[2].name, "marc")
-    assert.equal(usersArray[2].balance, "0")
-    assert.equal(usersArray[2].posts.length, 0)
-    assert.equal(usersArray[2].active, true)
+    const usersArray = await users.getUsernames([_.address, address1.address, address2.address]);
+    
+    assert.equal(usersArray[0], "maxim")
+    assert.equal(usersArray[1], "magalie")
+    assert.equal(usersArray[2], "marc")
   })
 
   it("Should check if an address is logged in has user", async function() {
@@ -66,21 +46,14 @@ describe("Users", function () {
     await users.connect(address1).createUser("magalie")
     await users.connect(address2).createUser("marc")
 
-    let usersArray = await users.getUsers();
+    let usersArray = await users.getUsernames([_.address, address1.address, address2.address]);
     assert.equal(usersArray.length, 3)
 
     await users.connect(address1).deleteUser();
 
-    usersArray = await users.getUsers();
+    usersArray = await users.getUsernames([_.address, address2.address]);
 
-    let count = 0;
-    for (let i=0;i<usersArray.length;i++){
-      if (usersArray[i].active){
-        count += 1;
-      }
-    }
-
-    assert.equal(count, 2)
+    assert.equal(usersArray.length, 2)
   })
 
   it("should deposit money in account", async function() {
@@ -197,6 +170,28 @@ describe("Market", function() {
     await ethMarket.connect(address1).bid(1, 110)
     await ethMarket.connect(address2).mint({value: 200})
     await ethMarket.connect(address2).bid(1, 180)
+    await ethMarket.connect(address2).bid(1, 190)
+
+    let userBids = await ethMarket.connect(address2).getUserBids();
+    userBids = await Promise.all(userBids.map(async i => {
+      let bid = {
+        id: i.id.toString(),
+        postId: i.postId.toString(),
+        from: i.from,
+        amount: i.amount.toString(),
+      }
+      return bid
+    }))
+
+    assert.equal(userBids[0].id, "2")
+    assert.equal(userBids[0].postId, "1")
+    assert.equal(userBids[0].from, address2.address)
+    assert.equal(userBids[0].amount, "180")
+
+    assert.equal(userBids[1].id, "3")
+    assert.equal(userBids[1].postId, "1")
+    assert.equal(userBids[1].from, address2.address)
+    assert.equal(userBids[1].amount, "190")
     
     let bidsArray = await ethMarket.getBids(1)
     bidsArray = await Promise.all(bidsArray.map(async i => {
@@ -211,7 +206,7 @@ describe("Market", function() {
     }))
 
     assert.equal(await ethMarket.connect(address1).getBalance(address1.address), 110)
-    assert.equal(await ethMarket.connect(address2).getBalance(address2.address), 20)
+    assert.equal(await ethMarket.connect(address2).getBalance(address2.address), 10)
 
     assert.equal(bidsArray[0].id, "1")
     assert.equal(bidsArray[0].postId, "1")

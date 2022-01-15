@@ -3,11 +3,16 @@ pragma solidity ^0.8.4;
 contract Users {
     address owner;
 
+    struct singleBid {
+        uint256 id;
+        uint256 postId;
+    }
     struct singleUser {
         address addr;
         string name;
         uint256 balance;
         uint256[] posts;
+        singleBid[] bids;
         bool active;
     }
 
@@ -38,10 +43,6 @@ contract Users {
         nbrUsers = 0;
     }
 
-    function getUsername() public view userExists() returns(string memory) {
-        return users[msg.sender].name;
-    }
-
     function getBalance(address who) public view returns(uint256) {
         require(users[who].active, "user dosen't exist");
         require(who == msg.sender, "you can't look at the balance of someone else");
@@ -56,20 +57,29 @@ contract Users {
         return false;
     }
 
-    function getUsers() public view isOwner() returns(singleUser[] memory) {
-        singleUser[] memory result = new singleUser[](usersAddress.length);
-        for (uint i=0;i<usersAddress.length;i++) {
-            if (users[usersAddress[i]].active){
-                result[i] = users[usersAddress[i]];
-            }
-        }
+    function getUsername(address who) public view returns(string memory) {
+        require(users[who].active, "No user with this address");
 
+        return users[who].name;
+    }
+
+    function getUsernames(address[] memory who) public view returns(string[] memory) {
+        string[] memory result = new string[](who.length);
+        for (uint i=0;i<who.length;i++){
+            require(users[who[i]].active, "No user with this address");
+            result[i] = users[who[i]].name;
+        }
         return result;
     }
 
     function createUser(string memory name) public userDoesntExists() {
-        uint256[] memory post;
-        users[msg.sender] = singleUser(msg.sender, name, 0, post, true);
+        singleUser storage user = users[msg.sender];
+
+        user.active = true;
+        user.addr = msg.sender;
+        user.balance = 0;
+        user.name = name;
+
         usersAddress.push(msg.sender);
         nbrUsers += 1;
 
@@ -82,8 +92,12 @@ contract Users {
             require(sent, "failed to send ether");
         }
 
-        uint256[] memory post;
-        users[msg.sender] = singleUser(address(0x0), '', 0, post, false);
+        singleUser storage user = users[msg.sender];
+
+        user.active = false;
+        user.addr = address(0x0);
+        user.balance = 0;
+        user.name = "";
 
         uint256 i = 0;
         while (usersAddress[i] != msg.sender){
@@ -97,6 +111,10 @@ contract Users {
 
     function linkPost(uint256 id) internal userExists(){
         users[msg.sender].posts.push(id);
+    }
+
+    function linkBid(uint256 id, uint256 postId) internal userExists(){
+        users[msg.sender].bids.push(singleBid(id, postId));
     }
 
     function mint() public payable userExists() {

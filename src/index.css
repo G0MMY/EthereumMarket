@@ -85,9 +85,34 @@ body{
 }
 #productContainer{
     display: flex;
-    width: 80%;
+    width: 1000px;
     justify-content: space-evenly;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    background-color: #fff;
+    margin-bottom: 60px;
+    margin-top: 40px;
 }
 #imgPost{
     width: 400px;
+}
+#bidContainer{
+    height: 400px;
+    width: 450px; 
+    margin-top: 40px; 
+}
+.goBack{
+    margin: 10px;
+    text-decoration: underline;
+    color: blue;
+    cursor: pointer;
+}
+#bidButton{
+    margin: 10px;
+}
+#bidHistoryTitle{
+    margin-top: 20px;
+    font-size: 35px;
+    margin-bottom: 0;
 }

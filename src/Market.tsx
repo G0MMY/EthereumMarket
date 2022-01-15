@@ -8,6 +8,7 @@ import SmallPost from './SmallPost';
 import { Tabs, Tab } from '@mui/material';
 import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
 import { marketContractAddress } from './config';
+import Highlights from './Highlights';
 
 interface Post{
     id: number,
@@ -29,35 +30,39 @@ export default function Market() {
     const navigate = useNavigate();
     const [contract, setContract] = useState<ethers.Contract>();
 
-    const initializeContracts = async() => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        setContract(new ethers.Contract(marketContractAddress, MarketContract.abi, signer));
+    const initializeContract = async(signer: ethers.providers.JsonRpcSigner) => {
+        const tempContract = new ethers.Contract(marketContractAddress, MarketContract.abi, signer);
+        setContract(tempContract);
+        if (!await tempContract!.isUser()){
+            navigate('/login');
+        } else {
+            loadPosts(tempContract);
+        }
     }
 
-    // const loadPosts = async () => {
-    //     if (marketContract.current != undefined){
-    //         let postsArray = await marketContract.current.getPosts();
+    const loadPosts = async (tempContract: ethers.Contract) => {
+        if (tempContract != undefined){
+            let postsArray = await tempContract.getPosts();
 
-    //         postsArray = await Promise.all(postsArray.map(async (i: Post) => {
-    //             let post = {
-    //                 id: i.id.toString(),
-    //                 name: i.name.toString(),
-    //                 description: i.description.toString(),
-    //                 category: i.category.toString(),
-    //                 imageUrl: i.imageUrl.toString(),
-    //                 owner: i.owner,
-    //                 startDate: i.startDate.toString(),
-    //                 endDate: i.endDate.toString(),
-    //                 price: i.price.toString(),
-    //                 sold: i.sold
-    //             }
-    //             return post;
-    //         }))
-    //         setRawPosts(postsArray);
-    //         buildPosts(postsArray);
-    //     }
-    // }   
+            postsArray = await Promise.all(postsArray.map(async (i: Post) => {
+                let post = {
+                    id: i.id.toString(),
+                    name: i.name.toString(),
+                    description: i.description.toString(),
+                    category: i.category.toString(),
+                    imageUrl: i.imageUrl.toString(),
+                    owner: i.owner,
+                    startDate: i.startDate.toString(),
+                    endDate: i.endDate.toString(),
+                    price: i.price.toString(),
+                    sold: i.sold
+                }
+                return post;
+            }))
+            setRawPosts(postsArray);
+            buildPosts(postsArray);
+        }
+    }   
 
     const buildPosts = (postsArray: Post[]) => {
         if (postsArray.length > 0){
@@ -82,7 +87,6 @@ export default function Market() {
     //     loadPosts();
     // }
 
-    // const createUserClick = async() => {
 
     const handleCategoryChange = (e: React.SyntheticEvent, category: number) => {
         setCategory(category);
@@ -158,63 +162,60 @@ export default function Market() {
         buildPosts(result);
     }
 
+    const isMetamaskInstalled = () => {
+        const { ethereum } = window;
+
+        return Boolean(ethereum && ethereum.isMetaMask);
+    }
+
+    const checkUser = async() => {
+        if (isMetamaskInstalled()){
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const accounts = await provider.listAccounts();
+            if (accounts.length > 0){
+                initializeContract(provider.getSigner());
+            } else {
+                navigate('/login');
+            }
+        } else {
+            navigate('/login');
+        }
+    }
+
+    useEffect(()=>{
+        checkUser();
+    }, [])
+
     return (
         <>
             <Header tab={1} />
-            Market
-            {/* {metamaskConnection? 
-                <div>
-                    <div className="centeringDiv">
-                        <Tabs value={category} onChange={handleCategoryChange} indicatorColor="secondary" textColor="secondary">
-                            <Tab label="All" />
-                            <Tab label="Sports" />
-                            <Tab label="Tech" />
-                            <Tab label="Cars" />
-                            <Tab label="Clothes" />
-                            <Tab label="Furnishing" />
-                            <Tab label="Other" />
-                        </Tabs>
-                        <div id="searchContainer">
-                            <Highlights posts={buildNameArray()} />
-                            <Button id="searchButton" onClick={searchClick} variant="contained">Search</Button>
-                        </div>
-                    </div>
-                    {loggedUser? 
-                        <div className="centeringDiv">
-                            <div id="postContainer">
-                                {posts}
-                            </div>
-                        </div>
-                       :
-                       <Box component="form">
-                            <TextField label="User Name" variant="outlined" value={username} error={usernameError} helperText={
-                                usernameError? "Only letters or numbers are valid for the username": ""
-                            } onChange={(e)=>{
-                                handleUsername(e);
-                            }}/>
-                            <Button variant="contained" disabled={usernameError} onClick={createUserClick}>Create User</Button>
-                        </Box>
-                    }
+            <div className="centeringDiv">
+                <Tabs value={category} onChange={handleCategoryChange} indicatorColor="secondary" textColor="secondary">
+                    <Tab label="All" />
+                    <Tab label="Sports" />
+                    <Tab label="Tech" />
+                    <Tab label="Cars" />
+                    <Tab label="Clothes" />
+                    <Tab label="Furnishing" />
+                    <Tab label="Other" />
+                </Tabs>
+                <div id="searchContainer">
+                    <Highlights posts={buildNameArray()} />
+                    <Button id="searchButton" onClick={searchClick} variant="contained">Search</Button>
                 </div>
-                :
-                <div>
-                {isMetamaskInstalled()? 
-                    <div className="metaMaskCheck">
-                        <b className="padding20">You need to be connected with MetaMask to see the posts.</b>
-                        <Button className="padding20" sx={{marginTop: 5, padding: 2}} variant="contained" onClick={connectMetaMask}>Connect</Button>
+                <div className="centeringDiv">
+                    <div id="postContainer">
+                        {posts}
                     </div>
-                    :
-                    <div className="metaMaskCheck">
-                        <b className="padding20">You need to install Metamask to interact with this application.</b>
-                        <Button className="padding20" sx={{marginTop: 5, padding: 2}} variant="contained" onClick={installMetamask}>Install MetaMask</Button>
-                    </div>
-                }
                 </div>
-            } */}
+            </div>
         </>
     )
 }
 
 //npx hardhat run scripts/deployDev.js --network localhost
+
+
+
 
 

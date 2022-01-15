@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "./Header";
+import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
 import { marketContractAddress } from './config';
@@ -8,29 +9,30 @@ import { Box, TextField, Button } from '@mui/material';
 
 
 export default function Login(){
-    const [loggedUser, setLoggedUser] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameError, setUsernameError] = useState(false);
     const [metamaskConnection, setMetamaskConnection] = useState(false);
     const [connectDisable, setConnectDisable] = useState(false);
     const [contract, setContract] = useState<ethers.Contract>();
+    const navigate = useNavigate();
 
-    const initializeContracts = async() => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
+    const initializeContract = async(signer: ethers.providers.JsonRpcSigner) => {
         const tempContract = new ethers.Contract(marketContractAddress, MarketContract.abi, signer);
         setContract(tempContract);
-        setLoggedUser(await tempContract!.isUser());
+        if (await tempContract!.isUser()){
+            navigate('/profile');
+        }
     }
     
-
     const createUserClick = async() => {
         if (username === ""){
             setUsernameError(true);
         }
         else if (contract != undefined){
             contract.createUser(username);
-            setLoggedUser(true);
+            contract.on("UserCreated", () => {
+                navigate('/profile');
+            });
         } else {
             console.log('contract not initialized')
         }
@@ -64,9 +66,9 @@ export default function Login(){
             if (accounts.length > 0) {
                 setMetamaskConnection(true);
                 if (contract === undefined){
-                    initializeContracts();
-                } else {
-                    setLoggedUser(await contract.isUser());
+                    initializeContract(provider.getSigner());
+                } else if (await contract.isUser()) {
+                    navigate('/profile');
                 }
             } else {
                 setMetamaskConnection(false);
@@ -85,27 +87,23 @@ export default function Login(){
         onboarding.startOnboarding();
     }
 
+    useEffect(()=>{
+        checkMetamaskConnection();
+    }, [])
+
 
     return (
         <>
-            <Header tab={3}/>
+            <Header tab={2}/>
             {metamaskConnection? 
-                <div>
-                    {loggedUser? 
-                        <div className="centeringDiv">
-                            
-                        </div>
-                       :
-                       <Box component="form">
-                            <TextField label="User Name" variant="outlined" value={username} error={usernameError} helperText={
-                                usernameError? "Only letters or numbers are valid for the username": ""
-                            } onChange={(e)=>{
-                                handleUsername(e);
-                            }}/>
-                            <Button variant="contained" disabled={usernameError} onClick={createUserClick}>Create User</Button>
-                        </Box>
-                    }
-                </div>
+                <Box component="form">
+                    <TextField label="User Name" variant="outlined" value={username} error={usernameError} helperText={
+                        usernameError? "Only letters or numbers are valid for the username": ""
+                    } onChange={(e)=>{
+                        handleUsername(e);
+                    }}/>
+                    <Button variant="contained" disabled={usernameError} onClick={createUserClick}>Create User</Button>
+                </Box>
                 :
                 <div>
                 {isMetamaskInstalled()? 
