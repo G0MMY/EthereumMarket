@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/maxim/Documents/ethmarket/contracts/ethMarket.sol": {
-      "lastModificationDate": 1642126320039,
+      "lastModificationDate": 1642264397631,
       "contentHash": "ea5ac206071e836ccfc2579dcadb0a74",
       "sourceName": "contracts/ethMarket.sol",
       "solcConfig": {
@@ -39,7 +39,7 @@
       ]
     },
     "/home/maxim/Documents/ethmarket/contracts/users.sol": {
-      "lastModificationDate": 1642201755697,
+      "lastModificationDate": 1642264448447,
       "contentHash": "d8bdfce141fde8255271fa7d3f283bb2",
       "sourceName": "contracts/users.sol",
       "solcConfig": {

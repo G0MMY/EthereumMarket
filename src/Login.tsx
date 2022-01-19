@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
 import { marketContractAddress } from './config';
 import MetaMaskOnboarding from '@metamask/onboarding';
-import { Box, TextField, Button } from '@mui/material';
+import { Box, TextField, Button, Fade, CircularProgress } from '@mui/material';
 
 
 export default function Login(){
@@ -15,6 +15,7 @@ export default function Login(){
     const [connectDisable, setConnectDisable] = useState(false);
     const [contract, setContract] = useState<ethers.Contract>();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const initializeContract = async(signer: ethers.providers.JsonRpcSigner) => {
         const tempContract = new ethers.Contract(marketContractAddress, MarketContract.abi, signer);
@@ -29,10 +30,14 @@ export default function Login(){
             setUsernameError(true);
         }
         else if (contract != undefined){
-            contract.createUser(username);
-            contract.on("UserCreated", () => {
-                navigate('/profile');
-            });
+            if (username !== ""){
+                setLoading(true);
+                contract.createUser(username);
+                contract.on("UserCreated", () => {
+                    setLoading(false);
+                    navigate('/profile');
+                });
+            }
         } else {
             console.log('contract not initialized')
         }
@@ -102,7 +107,10 @@ export default function Login(){
                     } onChange={(e)=>{
                         handleUsername(e);
                     }}/>
-                    <Button variant="contained" disabled={usernameError} onClick={createUserClick}>Create User</Button>
+                    <Button variant="contained" disabled={loading} onClick={createUserClick}>Create User</Button>
+                    <Fade in={loading}>
+                        <CircularProgress />
+                    </Fade>
                 </Box>
                 :
                 <div>

@@ -37,7 +37,14 @@ export default function Market() {
             navigate('/login');
         } else {
             loadPosts(tempContract);
+            listenContract(tempContract);
         }
+    }
+
+    const listenContract = (tempContract: ethers.Contract) => {
+        tempContract.on("CreatePost", () => {
+            loadPosts(tempContract);
+        });
     }
 
     const loadPosts = async (tempContract: ethers.Contract) => {
@@ -184,7 +191,7 @@ export default function Market() {
 
     useEffect(()=>{
         checkUser();
-    }, [])
+    }, []);
 
     return (
         <>

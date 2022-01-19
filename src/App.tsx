@@ -5,6 +5,8 @@ import Market from './Market';
 import Profile from './Profile';
 import Post from './Post';
 import Login from './Login';
+import CreatePost from './CreatePost';
+import MyPosts from './MyPosts';
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
         <Route path="/profile" element={<Profile />}/>
         <Route path="/post" element={<Post />}/>
         <Route path="/login" element={<Login />}/>
+        <Route path="/create-post" element={<CreatePost />}/>
+        <Route path="/my-posts" element={<MyPosts />} />
       </Routes>
     </Router>
   );

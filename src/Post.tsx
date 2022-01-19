@@ -5,7 +5,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { ethers } from 'ethers';
 import MarketContract from './artifacts/contracts/ethMarket.sol/EthMarket.json';
 import { marketContractAddress } from './config';
-import { Button, TextField } from '@mui/material';
+import { Button, TextField, Fade, CircularProgress } from '@mui/material';
 
 interface Bid{
     id: number,
@@ -32,6 +32,10 @@ interface Row {
     from: string,
     time: number
 }
+interface Props {
+    post: Post,
+    from: string
+}
 
 
 export default function Post() {
@@ -43,6 +47,8 @@ export default function Post() {
     const [price, setPrice] = useState(state.price);
     const [bid, setBid] = useState("");
     const [username, setUsername] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [showBid, setShowBid] = useState(true);
 
     const columns: GridColDef[] = [
         {field: 'id', headerName: 'ID', sortable: false, width: 90},
@@ -60,7 +66,16 @@ export default function Post() {
             loadBids(tempContract);
             const accounts = await provider.listAccounts();
             setUsername(await tempContract.getUsername(accounts[0]));
+            setShowBid(accounts[0] !== state.owner);
+            listenContract(tempContract);
         }
+    }
+
+    const listenContract = (tempContract: ethers.Contract) => {
+        tempContract.on("CreateBid", ()=>{
+            loadBids(tempContract);
+            setLoading(false);
+        })
     }
 
     const loadBids = async (tempContract: ethers.Contract) => {
@@ -70,7 +85,7 @@ export default function Post() {
             bidsArray = await Promise.all(bidsArray.map(async (i: Bid) => {
                 let bid = {
                     id: i.id.toString(),
-                    from: await contract!.getUsername(i.from),
+                    from: await tempContract.getUsername(i.from),
                     amount: i.amount.toString(),
                     time: i.time
                 }
@@ -92,7 +107,7 @@ export default function Post() {
     }
 
     const goBack = () => {
-        navigate('/market');
+        navigate(-1);
     }
 
     const isMetamaskInstalled = () => {
@@ -124,8 +139,8 @@ export default function Post() {
 
     const bidButton = () => {
         if (parseInt(bid) > price){
-            contract!.bid(state.id, price);
-            loadBids(contract!);
+            setLoading(true);
+            contract!.bid(state.id, bid);
         }
     }
 
@@ -148,12 +163,19 @@ export default function Post() {
                         <p>{price} WEI</p>
                         <p>{state.endDate}</p>
                         <p>{state.description}</p>
-                        <div>
-                            <TextField value={bid} onChange={(e)=>{
-                                handleBidChange(e);
-                            }} />
-                            <Button id="bidButton" variant="contained" onClick={bidButton}>Bid</Button>
-                        </div>
+                        {showBid? 
+                            <div>
+                                <TextField value={bid} label="Bid" onChange={(e)=>{
+                                    handleBidChange(e);
+                                }} />
+                                <Button id="bidButton" variant="contained" disabled={loading} onClick={bidButton}>Bid</Button>
+                                <Fade in={loading}>
+                                    <CircularProgress />
+                                </Fade>
+                            </div>
+                            :
+                            <div></div>
+                        }
                     </div>
                 </div>
                 <p id="bidHistoryTitle">Bids History</p>
