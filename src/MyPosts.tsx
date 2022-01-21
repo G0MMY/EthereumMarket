@@ -50,6 +50,11 @@ export default function MyPosts() {
                 price: i.price.toString(),
                 sold: i.sold
             };
+            const daysLeft = ((parseInt(post.endDate) / 1000) - (Date.now() / 1000)) / (60 * 60 * 24);
+            if (daysLeft <= 0){
+                tempContract.sell(post.id);
+                post.sold = true;
+            }
             return post;
         }));
         setRawPosts(postsArray);

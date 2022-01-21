@@ -49,7 +49,7 @@ contract EthMarket is Users {
         _;
     }
     modifier hasBids(uint256 id) {
-        require(bids[id].length > 0, "no one wants to buy yor product");
+        require(bids[id].length > 0, "no one wants to buy your product");
         _;
     }
 
@@ -99,7 +99,7 @@ contract EthMarket is Users {
     function getPosts() public view returns(Post[] memory) {
         Post[] memory result = new Post[](nbrPosts);
         for (uint i=0;i<nbrPosts;i++){
-            if (!posts[i+1].sold && posts[i+1].endDate > block.timestamp){
+            if (!posts[i+1].sold){
                 result[i] = posts[i+1];
             }
         }

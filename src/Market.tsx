@@ -45,30 +45,42 @@ export default function Market() {
         tempContract.on("CreatePost", () => {
             loadPosts(tempContract);
         });
+        tempContract.on("Sold", (postId: string) => {
+            let result: Post[] = [];
+            rawPosts.forEach((post)=>{
+                if (post.id != parseInt(postId)){
+                    result.push(post);
+                }
+            });
+            setRawPosts(result);
+            buildPosts(result);
+        })
     }
 
     const loadPosts = async (tempContract: ethers.Contract) => {
-        if (tempContract != undefined){
-            let postsArray = await tempContract.getPosts();
-
-            postsArray = await Promise.all(postsArray.map(async (i: Post) => {
-                let post = {
-                    id: i.id.toString(),
-                    name: i.name.toString(),
-                    description: i.description.toString(),
-                    category: i.category.toString(),
-                    imageUrl: i.imageUrl.toString(),
-                    owner: i.owner,
-                    startDate: i.startDate.toString(),
-                    endDate: i.endDate.toString(),
-                    price: i.price.toString(),
-                    sold: i.sold
-                }
-                return post;
-            }))
-            setRawPosts(postsArray);
-            buildPosts(postsArray);
-        }
+        let postsArray = await tempContract.getPosts();
+        postsArray = await Promise.all(postsArray.map(async (i: Post) => {
+            let post = {
+                id: parseInt(i.id.toString()),
+                name: i.name.toString(),
+                description: i.description.toString(),
+                category: i.category.toString(),
+                imageUrl: i.imageUrl.toString(),
+                owner: i.owner,
+                startDate: i.startDate.toString(),
+                endDate: i.endDate.toString(),
+                price: i.price.toString(),
+                sold: i.sold
+            }
+            const daysLeft = ((parseInt(post.endDate) / 1000) - (Date.now() / 1000)) / (60 * 60 * 24);
+            if (daysLeft <= 0){
+                tempContract.sell(post.id);
+                post.sold = true;
+            }
+            return post;
+        }))
+        setRawPosts(postsArray);
+        buildPosts(postsArray);
     }   
 
     const buildPosts = (postsArray: Post[]) => {
@@ -86,14 +98,6 @@ export default function Market() {
             ]);
         }
     }
-
-    // const click = async() =>{
-    //     if (marketContract.current != undefined){
-    //         await marketContract.current.createPost("test", "desc test", "image", 1641359145, 100);
-    //     }
-    //     loadPosts();
-    // }
-
 
     const handleCategoryChange = (e: React.SyntheticEvent, category: number) => {
         setCategory(category);

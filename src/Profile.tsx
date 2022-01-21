@@ -35,8 +35,8 @@ interface User {
 export default function Profile() {
     const navigate = useNavigate();
     const [contract, setContract] = useState<ethers.Contract>();
-    const [address, setAddress] = useState("");
     const [mint, setMint] = useState("");
+    const [burn, setBurn] = useState("");
     const [user, setUser] = useState<User>({
         username: "",
         balance: 0,
@@ -56,16 +56,33 @@ export default function Profile() {
         }
     }
 
-    const listenContract = (tempContract: ethers.Contract) => {
-        tempContract.on("Deposit", async() => {
-            setLoading(false);
-            setUser({
-                username: user.username, 
-                balance: parseInt(await contract!.getBalance(address)),
-                posts: user.posts,
-                bids: user.bids    
-            });
+    const listenContract = async(tempContract: ethers.Contract) => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.listAccounts();
+        const address = accounts[0];
+
+        tempContract.on("Deposit", async(sender: string) => {
+            if (address === sender){
+                setLoading(false);
+                setUser({
+                    username: user.username, 
+                    balance: parseInt(await tempContract.getBalance(address)),
+                    posts: user.posts,
+                    bids: user.bids    
+                });
+            }
         });
+        tempContract.on("Burn", async(sender: string) => {
+            if (address === sender){
+                setLoading(false);
+                setUser({
+                    username: user.username, 
+                    balance: parseInt(await tempContract.getBalance(address)),
+                    posts: user.posts,
+                    bids: user.bids    
+                });
+            }
+        })
     }
 
     const loadProfile = async(tempContract: ethers.Contract) => {
@@ -89,7 +106,6 @@ export default function Profile() {
         if (isMetamaskInstalled()){
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const accounts = await provider.listAccounts();
-            setAddress(accounts[0]);
             if (accounts.length > 0){
                 initializeContract(provider.getSigner());
             } else {
@@ -111,6 +127,20 @@ export default function Profile() {
         const currentBid = e.currentTarget.value;
         if (currentBid.match("^[0-9]*$")){
             setMint(e.currentTarget.value);
+        }
+    }
+
+    const handleBurnChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+        const currentBid = e.currentTarget.value;
+        if (currentBid.match("^[0-9]*$")){
+            setBurn(e.currentTarget.value);
+        }
+    }
+
+    const burnButton = async() => {
+        if (burn !== "" && parseInt(burn) <= user.balance){
+            setLoading(true);
+            await contract!.burn(burn);
         }
     }
 
@@ -145,6 +175,15 @@ export default function Profile() {
                         <CircularProgress />
                     </Fade>
                 </div>
+            </div>
+            <div>
+                <TextField value={burn} label="Checkout WEI" onChange={(e)=>{
+                    handleBurnChange(e);
+                }}/>
+                <Button id="burnButton" variant="contained" disabled={loading} onClick={burnButton}>Checkout</Button>
+                <Fade in={loading}>
+                    <CircularProgress />
+                </Fade>
             </div>
             <Button variant="contained" onClick={createPostClick}>Create Post</Button>
             <Button variant="contained" onClick={myPostsClick}>My Posts</Button>

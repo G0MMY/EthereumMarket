@@ -72,10 +72,12 @@ export default function Post() {
     }
 
     const listenContract = (tempContract: ethers.Contract) => {
-        tempContract.on("CreateBid", ()=>{
-            loadBids(tempContract);
-            setLoading(false);
-        })
+        tempContract.on("CreateBid", (from: string, bidId: number, postId: string)=>{
+            if (parseInt(postId) == state.id){
+                loadBids(tempContract);
+                setLoading(false);
+            }
+        });
     }
 
     const loadBids = async (tempContract: ethers.Contract) => {
