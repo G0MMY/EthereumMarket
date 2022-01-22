@@ -111,6 +111,9 @@ body{
 #bidButton{
     margin: 10px;
 }
+#burnButton{
+    margin: 10px;
+}
 #bidHistoryTitle{
     margin-top: 20px;
     font-size: 35px;
@@ -120,7 +123,7 @@ body{
     font-size: 35px;
     margin-top: 60px;
 }
-#profileBalance{
+.profileBalance{
     font-size: 25px;
     display: flex;
     justify-content: space-evenly;
@@ -129,4 +132,36 @@ body{
 #mintButton{
     margin-bottom: 10px;
     margin-left: 30px;
+}
+#login{
+    margin-top: 200px;
+}
+#loginButton{
+    margin-top: 20px;
+}
+#postProfile{
+    margin-top: 150px;
+    display: flex;
+    justify-content: space-evenly;
+    width: 800px;
+}
+#createPostTitle{
+    font-size: 35px;
+}
+#homeWelcome{
+    margin-top: 150px;
+    font-size: 35px;
+}
+#home{
+    margin-top: 50px;
+    width: 600px;
+    font-size: 20px;
+    text-align: center;
+}
+#postInfoContainer{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: large;
 }

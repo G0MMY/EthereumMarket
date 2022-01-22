@@ -101,13 +101,14 @@ export default function Login(){
         <>
             <Header tab={2}/>
             {metamaskConnection? 
-                <Box component="form">
-                    <TextField label="User Name" variant="outlined" value={username} error={usernameError} helperText={
+                <Box component="form" className="centeringDiv" id="login">
+
+                    <TextField label="Username" variant="outlined" value={username} error={usernameError} helperText={
                         usernameError? "Only letters or numbers are valid for the username": ""
                     } onChange={(e)=>{
                         handleUsername(e);
                     }}/>
-                    <Button variant="contained" disabled={loading} onClick={createUserClick}>Create User</Button>
+                    <Button variant="contained" id="loginButton" disabled={loading} onClick={createUserClick}>Create User</Button>
                     <Fade in={loading}>
                         <CircularProgress />
                     </Fade>

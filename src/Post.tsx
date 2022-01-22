@@ -139,6 +139,38 @@ export default function Post() {
         }
     }
 
+    const formatDaysLeft = () => {
+        let delta = (state.endDate - Date.now()) / 1000;
+        const days = Math.floor(delta / 86400);
+        delta -= days * 86400
+        const hours = Math.floor(delta / 3600) % 24
+        delta -= hours * 3600
+        const minutes = Math.floor(delta / 60) % 60
+        delta -= minutes * 60
+        const seconds = Math.floor(delta % 60)
+
+        if (days >= 1){
+            if (days === 1){
+                return days + " Day";
+            }
+            return days + " Days";
+        } else if (hours >= 1){
+            if (hours === 1){
+                return hours + " Hour";
+            }
+            return hours + " Hours";
+        } else if (minutes >= 1){
+            if (minutes === 1){
+                return minutes + " Minute";
+            }
+            return minutes + " Minutes";
+        } 
+        if (seconds === 1){
+            return seconds + " Second";
+        }
+        return seconds + " Seconds";
+    }
+
     const bidButton = () => {
         if (parseInt(bid) > price){
             setLoading(true);
@@ -159,27 +191,27 @@ export default function Post() {
             <div className="centeringDiv">
                 <div id="productContainer">
                     <img id="imgPost" src={state.imageUrl}/>
-                    <div>
+                    <div id="postInfoContainer">
                         <p>{state.name}</p>
-                        <p>{username}</p>
-                        <p>{price} WEI</p>
-                        <p>{state.endDate}</p>
-                        <p>{state.description}</p>
-                        {showBid? 
-                            <div>
-                                <TextField value={bid} label="Bid" onChange={(e)=>{
-                                    handleBidChange(e);
-                                }} />
-                                <Button id="bidButton" variant="contained" disabled={loading} onClick={bidButton}>Bid</Button>
-                                <Fade in={loading}>
-                                    <CircularProgress />
-                                </Fade>
-                            </div>
-                            :
-                            <div></div>
-                        }
+                        <p>Owner: {username}</p>
+                        <p>Price: {price} WEI</p>
+                        <p>Last Bid In: {formatDaysLeft()}</p>
+                        <p>Description: {state.description}</p>
                     </div>
                 </div>
+                {showBid? 
+                    <div>
+                        <TextField value={bid} label="Bid" onChange={(e)=>{
+                            handleBidChange(e);
+                        }} />
+                        <Button id="bidButton" variant="contained" disabled={loading} onClick={bidButton}>Bid</Button>
+                        <Fade in={loading}>
+                            <CircularProgress />
+                        </Fade>
+                    </div>
+                    :
+                    <div></div>
+                }
                 <p id="bidHistoryTitle">Bids History</p>
                 <div id="bidContainer">
                     <DataGrid columns={columns} rows={bids} pageSize={5} />

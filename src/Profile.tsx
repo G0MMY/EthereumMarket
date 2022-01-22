@@ -164,7 +164,7 @@ export default function Profile() {
             <div className="centeringDiv" id="profileTitle"> 
                 Welcome {user.username}!
             </div>
-            <div id="profileBalance">
+            <div className="profileBalance">
                 <p>Current Balance: {user.balance} WEI</p>
                 <div>
                     <TextField value={mint} label="Deposit WEI" onChange={(e)=>{
@@ -176,17 +176,26 @@ export default function Profile() {
                     </Fade>
                 </div>
             </div>
-            <div>
-                <TextField value={burn} label="Checkout WEI" onChange={(e)=>{
-                    handleBurnChange(e);
-                }}/>
-                <Button id="burnButton" variant="contained" disabled={loading} onClick={burnButton}>Checkout</Button>
-                <Fade in={loading}>
-                    <CircularProgress />
-                </Fade>
+            <div className="profileBalance">
+                <p>Enter the amount of money you want to whithdraw</p>
+                <div>
+                    <TextField value={burn} label="Withdraw WEI" onChange={(e)=>{
+                        handleBurnChange(e);
+                    }}/>
+                    <Button id="burnButton" variant="contained" disabled={loading} onClick={burnButton}>Withdraw</Button>
+                    <Fade in={loading}>
+                        <CircularProgress />
+                    </Fade>
+                </div>
             </div>
-            <Button variant="contained" onClick={createPostClick}>Create Post</Button>
-            <Button variant="contained" onClick={myPostsClick}>My Posts</Button>
+            <div className="centeringDiv">
+                <div id="postProfile">
+                    <>Click here to create a new post</>
+                    <Button variant="contained" onClick={createPostClick}>Create Post</Button>
+                    <>Click here to see all your posts</>
+                    <Button variant="contained" onClick={myPostsClick}>My Posts</Button>
+                </div>
+            </div>
         </>
     )
 }

@@ -19,6 +19,7 @@ export default function CreatePost() {
     const [contract, setContract] = useState<ethers.Contract>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [dateError, setDateError] = useState(false);
 
     const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         if (e.currentTarget.value.match("^[a-zA-Z]*$")){
@@ -50,16 +51,20 @@ export default function CreatePost() {
 
     const createPost = () => {
         const date = formatDate();
-        if (postName !== "" && description !== "" && price !== "" && category !== "" && contract !== undefined && date !== null){
-            contract.createPost(postName, description, category, "/photoTest.png", date, price);
-            setLoading(true);
-            document.getElementById("createPostBack")!.style.pointerEvents = "none";
-            contract.on("CreatePost", async(id: number, name: string)=>{
-                if (name === postName){
-                    setLoading(false);
-                    navigate("/profile");
-                }
-            });
+        if (postName !== "" && description !== "" && price !== "" && category !== "" && contract !== undefined && date !== undefined){
+            if (date > Date.now()){
+                contract.createPost(postName, description, category, "/photoTest.png", date, price);
+                setLoading(true);
+                document.getElementById("createPostBack")!.style.pointerEvents = "none";
+                contract.on("CreatePost", async(id: number, name: string)=>{
+                    if (name === postName){
+                        setLoading(false);
+                        navigate("/profile");
+                    }
+                });
+            } else {
+                setDateError(true);
+            }
         }
     }
 
@@ -105,47 +110,48 @@ export default function CreatePost() {
             <div className="goBack" id="createPostBack" onClick={goBack}>
                 &#8592; go back
             </div>
-            Create a new post
-            <TextField value={postName} label="Name" onChange={(e)=>{
-                handleNameChange(e);
-            }}/>
-            <TextField value={description} label="Description" onChange={(e)=>{
-                handleDescriptionChange(e);
-            }}/>
-            <FormControl>
-                <InputLabel id="categoryLabel">Category</InputLabel>
-                <Select
-                    labelId="categoryLabel"
-                    value={category}
-                    label="Category"
-                    onChange={handleCategoryChange}
-                >
-                <MenuItem value="All">All</MenuItem>
-                <MenuItem value="Sports">Sports</MenuItem>
-                <MenuItem value="Tech">Tech</MenuItem>
-                <MenuItem value="Cars">Cars</MenuItem>
-                <MenuItem value="Clothes">Clothes</MenuItem>
-                <MenuItem value="Furnishing">Furnishing</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-            </Select>
-        </FormControl>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                    label="End Date"
-                    value={endDate}
-                    onChange={(date) => {
-                        setEndDate(date);
-                    }}
-                    renderInput={(params) => <TextField {...params} />}
-                />
-            </LocalizationProvider>
-            <TextField value={price} label="Price" onChange={(e)=>{
-                handlePriceChange(e);
-            }}/>
-            <Button variant="contained" disabled={loading} onClick={createPost}>Create Post</Button>
-            <Fade in={loading}>
-                <CircularProgress />
-            </Fade>
+            <div className="centeringDiv">
+                <p id="createPostTitle">Create a new post</p>
+                <TextField sx={{marginTop: 5}} value={postName} label="Name" onChange={(e)=>{
+                    handleNameChange(e);
+                }}/>
+                <TextField value={description} sx={{width: 700, marginTop: 5}} multiline rows={5} label="Description" onChange={(e)=>{
+                    handleDescriptionChange(e);
+                }}/>
+                <FormControl sx={{width: 150, marginTop: 5}}>
+                    <InputLabel id="categoryLabel">Category</InputLabel>
+                    <Select
+                        labelId="categoryLabel"
+                        value={category}
+                        label="Category"
+                        onChange={handleCategoryChange}
+                    >
+                    <MenuItem value="Sports">Sports</MenuItem>
+                    <MenuItem value="Tech">Tech</MenuItem>
+                    <MenuItem value="Cars">Cars</MenuItem>
+                    <MenuItem value="Clothes">Clothes</MenuItem>
+                    <MenuItem value="Furnishing">Furnishing</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                    </Select>
+                </FormControl>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                        label="End Date"
+                        value={endDate}
+                        onChange={(date) => {
+                            setEndDate(date);
+                        }}
+                        renderInput={(params) => <TextField sx={{width: 200, marginTop: 5}} {...params} />}
+                    />
+                </LocalizationProvider>
+                <TextField value={price} sx={{width: 150, marginTop: 5}} label="Price" onChange={(e)=>{
+                    handlePriceChange(e);
+                }}/>
+                <Button variant="contained" sx={{marginTop: 5}} disabled={loading} onClick={createPost}>Create Post</Button>
+                <Fade in={loading}>
+                    <CircularProgress />
+                </Fade>
+            </div>
         </>
     )
 }
