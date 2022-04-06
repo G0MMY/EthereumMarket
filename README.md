@@ -1,6 +1,6 @@
 # Eth Market, a simple store to sell used products
 
-This project is a simple used product market. I did it to learn how to write smart contracts and how to interact with a blockchain with a frontend application. This application is built with Hardhat, an Ethereum development environment, and React. I used Solidity for the smart contracts and Typescript for the web application.
+This project is a simple used product market. I did it to learn how to write smart contracts and how to interact with a blockchain with a frontend application. This application is built with Hardhat, an Ethereum development environment, and React. I used Solidity for the smart contracts and Typescript for the web application. The web application is not quite done but it does the work. 
 
 ## Installation
 
@@ -15,7 +15,7 @@ This project is a simple used product market. I did it to learn how to write sma
 
 **Store page**
 
-![GitHub Image](public/store.png)
+![GitHub Image](public/shop.png)
 
 **Product page**
 
