@@ -1,15 +1,26 @@
-# Basic Sample Hardhat Project
+# Eth Market, a simple store to sell used products
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This project is a simple used product market. I did it to learn how to write smart contracts and how to interact with a blockchain with a frontend application. This application is built with Hardhat, an Ethereum development environment, and React. I used Solidity for the smart contracts and Typescript for the web application.
 
-Try running some of the following tasks:
+## Installation
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+*Download the source code
+*Run npm install
+*Open three terminals
+*In the first one, run npm start
+*In the second one, run npx hardhat node
+*In the third one, run npx hardhat run --network localhost scripts/deployDev.js
+
+## Quick look
+
+**Store page**
+
+![GitHub Image](public/store.png)
+
+**Product page**
+
+![GitHub Image](public/product.png)
+
+**Profile page while using Metamask to withdraw**
+
+![GitHub Image](public/profile.png)
